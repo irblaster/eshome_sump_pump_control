@@ -1,0 +1,71 @@
+esphome:
+  name: sump-control
+
+esp8266:
+  board: d1_mini
+
+# Enable logging
+logger:
+
+switch:
+  - platform: gpio
+    pin: D5
+    id: pump_relay
+  
+
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: D6
+      mode:
+        input: True
+        pullup: True
+    name: "Sump Float Switch"
+    device_class: running  
+    filters:
+      - invert:
+      - delayed_off:  1s 
+      - autorepeat:
+        - delay: 60s
+          time_off: 120s
+          time_on: 60s
+    on_press: 
+      then:
+        - switch.turn_on: pump_relay
+    on_release:
+      then:    
+        - delay: 20s
+        - switch.turn_off: pump_relay
+
+sensor:
+  - platform: ultrasonic
+    trigger_pin: D1
+    echo_pin: D2
+    name: "Sump Ultrasonic Sensor"
+  - platform: adc
+    pin: A0
+    name: "Sump Battery"
+    update_interval: 60s
+    filters:
+      - multiply: 16
+
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "curSf62m6ZYe/BfelHKxG9ojGfGYfd4yBQqFc+hC3D8="
+
+ota:
+  password: "dfab7eeab40647d97bb15e37cb4aa8f6"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Sump-Control Fallback Hotspot"
+    password: "Uy2KWwwzQtY1"
+
+captive_portal:
+    
